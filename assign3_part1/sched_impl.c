@@ -7,7 +7,7 @@ static void init_thread_info(thread_info_t *info, sched_queue_t *queue)
 {
 	/*...Code goes here...*/
 	info->queue = queue;
-	info->mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_init(&(info->mutex),NULL);
 	list_init(queue->queue);
 }
 
@@ -17,43 +17,42 @@ static void destroy_thread_info(thread_info_t *info)
 }
 
 static void enter_sched_queue(thread_info_t *info){
-	list_elem_init(item->data, info);
+	list_elem_init(info->data, info);
 	while(info->queue->num_threads >= info->queue->MAX_THREADS){
 		// spin wait
 	}
-	pthread_mutex_lock(info->queue->mutex);
+	pthread_mutex_lock(&(info->queue->mutex));
 	if(info->queue->num_threads < info->queue->MAX_THREADS){
 		list_insert_tail(info->queue->queue, info->data);
 		info->queue->num_threads++;
-		pthread_mutex_unlock(info->queue->mutex);
+		pthread_mutex_unlock(&(info->queue->mutex));
 } else{
-		pthread_mutex_unlock(info->queue->mutex);
+		pthread_mutex_unlock(&(info->queue->mutex));
 		enter_sched_queue(info);
 		return;
 	}
-	info->queued = 1;
 }
 
 static void leave_sched_queue(thread_info_t *info){
-	pthread_mutex_lock(info->queue->mutex);
+	pthread_mutex_lock(&(info->queue->mutex));
 	list_remove_elem(info->queue->queue, info->data);
 	info->queue->num_threads--;
-	pthread_mutex_unlock(info->queue->mutex);
+	pthread_mutex_unlock(&(info->queue->mutex));
 }
 
 static void wait_for_cpu(thread_info_t *info){
-	pthread_mutex_lock(info->mutex);
+	pthread_mutex_lock(&(info->mutex));
 	info->wait = 1;
-	pthread_mutex_unlock(info->mutex);
+	pthread_mutex_unlock(&(info->mutex));
 	while(info->wait){
 		// spin wait
 	}
 }
 
 static void release_cpu(thread_info_t *info){
-	pthread_mutex_lock(info->queue->mutex);
+	pthread_mutex_lock(&(info->queue->mutex));
 	info->queue->in_use = 0;
-	pthread_mutex_unlock(info->queue->mutex);
+	pthread_mutex_unlock(&(info->queue->mutex));
 }
 /*...More functions go here...*/
 
@@ -61,7 +60,7 @@ static void init_sched_queue(sched_queue_t *queue, int queue_size)
 {
 	/*...Code goes here...*/
 	queue->MAX_THREADS = queue_size;
-	queue->mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_init(&(queue->mutex),NULL);
 	// queue and numthreads
 }
 
@@ -71,23 +70,23 @@ static void destroy_sched_queue(sched_queue_t *queue)
 }
 
 static void wake_up_worker(thread_info_t *info){
-	pthread_mutex_lock(info->mutex);
+	pthread_mutex_lock(&(info->mutex));
 	info->wait = 0;
-	pthread_mutex_unlock(info->mutex);
+	pthread_mutex_unlock(&(info->mutex));
 }
 static void wait_for_worker(sched_queue_t *queue){
-	pthread_mutex_lock(queue->mutex);
+	pthread_mutex_lock(&(queue->mutex));
 	queue->in_use = 1;
-	pthread_mutex_unlock(queue->mutex);
+	pthread_mutex_unlock(&(queue->mutex));
 	while(queue->in_use){
 		// spin wait
 	}
 }
 static thread_info_t * next_worker_fifo(sched_queue_t *queue){
-	 return list_get_tail(queue->queue);
+	 return list_get_tail(queue->queue)->datum;
 }
 static thread_info_t * next_worker_rr(sched_queue_t *queue){
-	return list_get_head(queue->queue);
+	return list_get_head(queue->queue)->datum;
 }
 static void wait_for_queue(sched_queue_t *queue){
 	while(queue->num_threads <= 0){
