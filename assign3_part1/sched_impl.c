@@ -4,12 +4,13 @@
 
 /* Fill in your scheduler implementation code below: */
 
+void del(list_elem_t* li){free(li);}
+
 static void init_thread_info(thread_info_t *info, sched_queue_t *queue)
 {
 	/*...Code goes here...*/
 	info->queue = queue;
 	pthread_mutex_init(&(info->mutex),NULL);
-	list_init(queue->queue);
 }
 
 static void destroy_thread_info(thread_info_t *info)
@@ -68,12 +69,17 @@ static void init_sched_queue(sched_queue_t *queue, int queue_size)
 	/*...Code goes here...*/
 	queue->MAX_THREADS = queue_size;
 	pthread_mutex_init(&(queue->mutex),NULL);
+	queue->num_threads = 0;
+	queue->queue = (list_t*)malloc(sizeof(list_t*));
+	list_init(queue->queue);
 	// queue and numthreads
 }
 
 static void destroy_sched_queue(sched_queue_t *queue)
 {
 	/*...Code goes here...*/
+	list_foreach(queue->queue, &del);
+	free(queue->queue);
 }
 
 static void wake_up_worker(thread_info_t *info){
@@ -93,7 +99,10 @@ static thread_info_t * next_worker_fifo(sched_queue_t *queue){
 	 return list_get_tail(queue->queue)->datum;
 }
 static thread_info_t * next_worker_rr(sched_queue_t *queue){
-	return list_get_head(queue->queue)->datum;
+	list_elem_t* ret = list_get_head(queue->queue);
+	list_remove_elem(queue->queue,ret);
+	list_insert_tail(queue->queue,ret);
+	return ret->datum;
 }
 static void wait_for_queue(sched_queue_t *queue){
 	while(queue->num_threads <= 0){
