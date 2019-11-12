@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "sched_impl.h"
+#include <stdlib.h>
 
 /* Fill in your scheduler implementation code below: */
 
@@ -17,13 +18,15 @@ static void destroy_thread_info(thread_info_t *info)
 }
 
 static void enter_sched_queue(thread_info_t *info){
-	list_elem_init(info->data, info);
+	list_elem_t* data = (list_elem_t*)malloc(sizeof(list_elem_t*));
+	data->datum = info;
+	data->next = data->prev = NULL;
 	while(info->queue->num_threads >= info->queue->MAX_THREADS){
 		// spin wait
 	}
 	pthread_mutex_lock(&(info->queue->mutex));
 	if(info->queue->num_threads < info->queue->MAX_THREADS){
-		list_insert_tail(info->queue->queue, info->data);
+		list_insert_tail(info->queue->queue, data);
 		info->queue->num_threads++;
 		pthread_mutex_unlock(&(info->queue->mutex));
 } else{
@@ -35,7 +38,11 @@ static void enter_sched_queue(thread_info_t *info){
 
 static void leave_sched_queue(thread_info_t *info){
 	pthread_mutex_lock(&(info->queue->mutex));
-	list_remove_elem(info->queue->queue, info->data);
+	list_elem_t* curr = list_get_head(info->queue->queue);
+	while(curr && curr->datum != info){
+		curr = curr->next;
+	}
+	list_remove_elem(info->queue->queue, curr);
 	info->queue->num_threads--;
 	pthread_mutex_unlock(&(info->queue->mutex));
 }
