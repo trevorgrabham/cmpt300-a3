@@ -27,7 +27,7 @@ static void enter_sched_queue(thread_info_t *info){
 	}
 	pthread_mutex_lock(&(info->queue->mutex));
 	if(info->queue->num_threads < info->queue->MAX_THREADS){
-		list_insert_tail(info->queue->queue, data);
+		list_insert_head(info->queue->queue, data);
 		info->queue->num_threads++;
 		pthread_mutex_unlock(&(info->queue->mutex));
 } else{
@@ -96,13 +96,20 @@ static void wait_for_worker(sched_queue_t *queue){
 	}
 }
 static thread_info_t * next_worker_fifo(sched_queue_t *queue){
-	 return list_get_tail(queue->queue)->datum;
+	 list_elem_t* ret = list_get_tail(queue->queue);
+	 if(ret)
+	 	return ret->datum;
+	 return NULL;
 }
 static thread_info_t * next_worker_rr(sched_queue_t *queue){
-	list_elem_t* ret = list_get_head(queue->queue);
-	list_remove_elem(queue->queue,ret);
-	list_insert_tail(queue->queue,ret);
-	return ret->datum;
+	list_elem_t* ret = list_get_tail(queue->queue);
+	if(ret){
+		list_remove_elem(queue->queue,ret);
+		list_insert_head(queue->queue,ret);
+		return ret->datum;
+	} else{
+		return NULL;
+	}
 }
 static void wait_for_queue(sched_queue_t *queue){
 	while(queue->num_threads <= 0){

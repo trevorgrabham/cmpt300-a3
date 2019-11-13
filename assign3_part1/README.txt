@@ -187,6 +187,7 @@ Suggested approach:
 4.2 Figure out how you will implement the scheduler queue, add the
     appropriate fields to struct sched_queue, and fill in the appropriate
     queue-related operations in the functions you created in (4.1).
+
     Remember that we provide a doubly-linked list in list.[hc].
 
 4.3 Implement scheduler queue admission control, so that only the requested

@@ -1,0 +1,51 @@
+Part 1
+
+1)  Using the structure of function pointers allows us to have a much more
+    object oriented approach. It allows for more modularization where we can
+    import only the package of functions that we will need. The cons would
+    be the overhead that comes with having to allocate an object to hold the
+    function pointers. I would use this for larger projects where we need more
+    organization.
+
+2)  I used flag variables and mutexes to synchronize the threads and scheulers.
+    I used mutexes to control the writes to the flag variables and then used a
+    spin wait to ensure that only one thread was working at a time.
+
+3)
+
+4)  Since the sched_proc loop runs while num_workers_remaining > 0, and each
+    worker only decrements the variables once and it is once is has completed
+    all of its work, it is not possible for either of the scheduling methods
+    to miss a thread and terminate properly.
+
+5)  extern allows us to tell the processor that the variables declared will be
+    defined in a different file that will be provided at the linking stage. It
+    allows us to use there variables that have not been declared yet without
+    needing an include statment.
+
+6)  exit_error will output the error message associated with the given err_num.
+    We don't use errno, because we use exit_error to detect errors that would
+    not normally set errno, so using err_num allows us to still use errno Where
+    applicable, and use other values when not.
+
+7)  It wouldn't matter if we omitted the wait_for_queue function calls, as long
+    as we still checked to make sure that next_worker still returns null when
+    the queue is empty then it would still work as expected.
+
+8)  I used the same wait_for_cpu for both of my scheduling policies, i just
+    changed the next_worker function based upon the scheduling policy. It would
+    have been valid to have wait_for_cpu do nothing at all though in the case of
+    fifo scheduling. We could have simply passed an empty function to the fifo
+    scheduling varaible.
+
+9)  As long as we are properly removing and updating our queue then it should
+    not be possible for a thread to be deadlocked waiting for the cpu. I ensure
+    this by cycling the elements in the case of rr and by removing and updating
+    the tail in the case of fifo.
+
+10) I would change the sleep time from 3*10^5 to 3*10^10 in the worker_proc
+    function for one of the worker threads, but keep the other threads at 3*10^5.
+    Once we give the cpu to the longer thread it would stall in the loop. We
+    would struggle to show the benefits of rr though, because even though we
+    wouldn't have to deal with all iterations of the thread, we would still have
+    a large amount of time to wait before we moved onto the next worker.
