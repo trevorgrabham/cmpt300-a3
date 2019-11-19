@@ -176,6 +176,8 @@ initialized to the value passed on the command line, and decreases as the thread
 executes.  If there is any more work for this worker to do, send it a signal to
 suspend, and update the scheduler queue.  Otherwise, cancel the thread.
 
+      need to do the signalling still
+
 Step 5.
 
 Complete the cancel_worker() function by sending the appropriate signal to the

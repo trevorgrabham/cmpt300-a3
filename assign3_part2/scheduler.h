@@ -5,7 +5,7 @@
 #include <semaphore.h>
 #include "list.h"
 
-#define QUANTUM 1 
+#define QUANTUM 1
 
 /* typedefs */
 typedef struct thread_info {
